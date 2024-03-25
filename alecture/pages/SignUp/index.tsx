@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Form, Label, Input, Header, LinkContainer, Button, Error } from './styles';
 import useInupt from '@hooks/useInupt';
+import axios from 'axios';
 
 const SigUp = () => {
   const [email, onChangeEmail] = useInupt('');
@@ -30,6 +31,19 @@ const SigUp = () => {
       e.preventDefault();
       if (!mismatchError) {
         console.log('서버로 넘기기', email, nickname, password, passwordCheck);
+        axios
+          .post('http://localhost:3095/api/users', {
+            email,
+            nickname,
+            password,
+          })
+          .then((response) => {
+            console.log(response); //성공시
+          })
+          .catch((error) => {
+            console.log(error.response); //실패시
+          })
+          .finally(() => {});
       }
     },
     [email, nickname, password, passwordCheck, mismatchError],
