@@ -2,9 +2,12 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Form, Label, Input, Header, LinkContainer, Button, Error, Success } from './styles';
 import useInput from '@hooks/useInupt';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
+import fetcher from '@utils/fetcher';
+import useSWR from 'swr';
 
 const SigUp = () => {
+  const { data, error, mutate } = useSWR('http://localhost:3095/api/users', fetcher);
   const [email, onChangeEmail] = useInput('');
   const [nickname, onChangeNickname] = useInput('');
   const [password, setPassword] = useState('');
@@ -55,6 +58,10 @@ const SigUp = () => {
     },
     [email, nickname, password, passwordCheck, mismatchError],
   );
+
+  if (data) {
+    return <Redirect to="/workspace/channel" />;
+  }
 
   return (
     <div id="container">

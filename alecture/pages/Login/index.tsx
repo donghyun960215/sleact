@@ -2,12 +2,12 @@ import React, { useCallback, useState } from 'react';
 import { Button, Error, Form, Header, Input, Label, LinkContainer } from './styles';
 import axios from 'axios';
 import useInput from '@hooks/useInupt';
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 import useSWR from 'swr';
 import fetcher from '@utils/fetcher';
 
 const LogIn = () => {
-  const { data, error } = useSWR('/api/users', fetcher);
+  const { data, error, mutate } = useSWR('http://localhost:3095/api/users', fetcher);
   const [email, onChangeEmail] = useInput('');
   const [password, onChangePassword] = useInput('');
   const [logInError, setLogInError] = useState(false);
@@ -17,8 +17,16 @@ const LogIn = () => {
       e.preventDefault();
       setLogInError(false);
       axios
-        .post('/api/users/login', { email, password })
-        .then(() => {})
+        .post(
+          'http://localhost:3095/api/users/login',
+          { email, password },
+          {
+            withCredentials: true,
+          },
+        )
+        .then(() => {
+          mutate();
+        })
         .catch((error) => {
           console.dir(error);
           setLogInError(error.response?.status === 401);
@@ -26,6 +34,10 @@ const LogIn = () => {
     },
     [email, password],
   );
+
+  if (data) {
+    return <Redirect to="/workspace/channel" />;
+  }
 
   return (
     <div id="container">
