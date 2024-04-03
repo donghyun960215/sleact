@@ -26,6 +26,7 @@ import { IUser } from '@typings/db';
 import Modal from '@components/Modal';
 import { Label, Input, Button } from '@pages/SignUp/styles';
 import useInput from '@hooks/useInupt';
+import { toast } from 'react-toastify';
 
 const Workspace: VFC = () => {
   const { data: userData, error, mutate } = useSWR<IUser | false>('http://localhost:3095/api/users', fetcher);
@@ -50,15 +51,49 @@ const Workspace: VFC = () => {
       });
   }, []);
 
-  const onClickUserProfile = useCallback(() => {
+  const onClickUserProfile = useCallback((e) => {
+    e.stopPropagtion;
     setShowUserMenu((prev) => !prev);
+  }, []);
+
+  const onCloseUserProfile = useCallback((e) => {
+    e.stopPropagation();
+    setShowUserMenu(false);
   }, []);
 
   const onClickCreateWorkspace = useCallback(() => {
     setShowCreateWorkspaceModal(true);
   }, []);
 
-  const onCreateWorkspace = useCallback(() => {}, []);
+  const onCreateWorkspace = useCallback(
+    (e) => {
+      e.preventDefault(); //새로고침 안되게
+      if (!newWorkspace || !newWorkspace.trim()) return; //필수값 체크
+      if (!newUrl || !newUrl.trim()) return; //필수값 체크
+      // 보통 필수입력 검사할 때 if(!newUrl) return; 이렇게만 하는데
+      // 그렇게만 하면 띄어쓰기 하나 넣어도 통과를 하기 때문에 trim을 추가해서 검사한다.
+      axios
+        .post(
+          'http://localhost:3095/api/workspaces',
+          {
+            workspace: newWorkspace,
+            url: newUrl,
+          },
+          { withCredentials: true },
+        )
+        .then(() => {
+          mutate();
+          setShowCreateWorkspaceModal(false);
+          setNewWorkpsace('');
+          setNewUrl('');
+        })
+        .catch((error) => {
+          console.dir(error);
+          toast.error(error.response?.data, { position: 'bottom-center' });
+        });
+    },
+    [newWorkspace, newUrl],
+  );
 
   const onCloseModal = useCallback(() => {
     setShowCreateWorkspaceModal(false);
@@ -75,7 +110,7 @@ const Workspace: VFC = () => {
           <span onClick={onClickUserProfile}>
             <ProfileImg src={gravatar.url(userData.email, { s: '28px', d: 'retro' })} alt={userData.email} />
             {showUserMenu && (
-              <Menu style={{ right: 0, top: 38 }} show={showUserMenu} onCloseModal={onClickUserProfile}>
+              <Menu style={{ right: 0, top: 38 }} show={showUserMenu} onCloseModal={onCloseUserProfile}>
                 <ProfileModal>
                   <img src={gravatar.url(userData.email, { s: '36px', d: 'retro' })} alt={userData.email} />
                   <div>
