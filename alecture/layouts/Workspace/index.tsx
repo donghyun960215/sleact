@@ -1,4 +1,4 @@
-import React, { FC, VFC, useCallback, useState } from 'react';
+import React, { FC, VFC, useCallback, useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
 import fetcher from '@utils/fetcher';
 import axios from 'axios';
@@ -14,6 +14,7 @@ import {
   ProfileModal,
   RightMenu,
   WorkspaceButton,
+  WorkspaceModal,
   WorkspaceName,
   WorkspaceWrapper,
   Workspaces,
@@ -27,15 +28,21 @@ import Modal from '@components/Modal';
 import { Label, Input, Button } from '@pages/SignUp/styles';
 import useInput from '@hooks/useInupt';
 import { toast } from 'react-toastify';
+import CreateChannelModal from '@components/CreateChannelModal';
+
+const Channel = loadable(() => import('@pages/Channel'));
+const DirectMessage = loadable(() => import('@pages/DirectMessage'));
 
 const Workspace: VFC = () => {
-  const { data: userData, error, mutate } = useSWR<IUser | false>('http://localhost:3095/api/users', fetcher);
-  const Channel = loadable(() => import('@pages/Channel'));
-  const DirectMessage = loadable(() => import('@pages/DirectMessage'));
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
+  const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
+  const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
   const [newWorkspace, onChangeNewWorkspace, setNewWorkpsace] = useInput('');
   const [newUrl, onChangeNewUrl, setNewUrl] = useInput('');
+  const refName = useRef<any>();
+  const refUrl = useRef<any>();
+  const { data: userData, error, mutate } = useSWR<IUser | false>('http://localhost:3095/api/users', fetcher);
 
   const onLogout = useCallback(() => {
     axios
@@ -68,10 +75,8 @@ const Workspace: VFC = () => {
   const onCreateWorkspace = useCallback(
     (e) => {
       e.preventDefault(); //새로고침 안되게
-      if (!newWorkspace || !newWorkspace.trim()) return; //필수값 체크
-      if (!newUrl || !newUrl.trim()) return; //필수값 체크
-      // 보통 필수입력 검사할 때 if(!newUrl) return; 이렇게만 하는데
-      // 그렇게만 하면 띄어쓰기 하나 넣어도 통과를 하기 때문에 trim을 추가해서 검사한다.
+      if (!newWorkspace || !newWorkspace.trim()) return [alert('이름을 입력해주세요.'), refName.current.focus()];
+      if (!newUrl || !newUrl.trim()) return [alert('url를 입력해주세요.'), refUrl.current.focus()];
       axios
         .post(
           'http://localhost:3095/api/workspaces',
@@ -97,6 +102,15 @@ const Workspace: VFC = () => {
 
   const onCloseModal = useCallback(() => {
     setShowCreateWorkspaceModal(false);
+    setShowCreateChannelModal(false);
+  }, []);
+
+  const toggleWorkspaceModal = useCallback(() => {
+    setShowWorkspaceModal((prev) => !prev);
+  }, []);
+
+  const onClickAddChannel = useCallback(() => {
+    setShowCreateChannelModal(true);
   }, []);
 
   if (!userData) {
@@ -136,8 +150,17 @@ const Workspace: VFC = () => {
           <AddButton onClick={onClickCreateWorkspace}>+</AddButton>
         </Workspaces>
         <Channels>
-          <WorkspaceName>Sleact</WorkspaceName>
-          <MenuScroll>MenyScroll</MenuScroll>
+          <WorkspaceName onClick={toggleWorkspaceModal}>Sleact</WorkspaceName>
+          <MenuScroll>
+            <Menu show={showWorkspaceModal} onCloseModal={toggleWorkspaceModal} style={{ top: 95, left: 80 }}>
+              <WorkspaceModal>
+                <h2>Sleact</h2>
+                {/* <button onClick={onClickInviteWorkspace}>워크스페이스에 사용자 초대</button> */}
+                <button onClick={onClickAddChannel}>채널 만들기</button>
+                <button onClick={onLogout}>로그아웃</button>
+              </WorkspaceModal>
+            </Menu>
+          </MenuScroll>
         </Channels>
         <Chats>
           <Switch>
@@ -149,16 +172,17 @@ const Workspace: VFC = () => {
       <Modal show={showCreateWorkspaceModal} onCloseModal={onCloseModal}>
         <form onSubmit={onCreateWorkspace}>
           <Label id="workespace-label">
-            <span>워크스페이스 이동</span>
-            <Input id="workspace" value={newWorkspace} onChange={onChangeNewWorkspace} />
+            <span>워크스페이스 이름</span>
+            <Input id="workspace" value={newWorkspace} onChange={onChangeNewWorkspace} ref={refName} />
           </Label>
           <Label id="workespace-url-label">
-            <span>워크스페이스 이동</span>
-            <Input id="workspace" value={newUrl} onChange={onChangeNewUrl} />
+            <span>워크스페이스 url</span>
+            <Input id="workspace" value={newUrl} onChange={onChangeNewUrl} ref={refUrl} />
           </Label>
           <Button type="submit">생성하기</Button>
         </form>
       </Modal>
+      <CreateChannelModal show={showCreateChannelModal} onCloseModal={onCloseModal}></CreateChannelModal>
     </div>
   );
 };
