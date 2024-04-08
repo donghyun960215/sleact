@@ -18,7 +18,7 @@ const InviteWorkspaceModal: FC<Props> = ({ show, onCloseModal, setShowInviteWork
   const { workspace } = useParams<{ workspace: string; channel: string }>();
   const [newMember, onChangeNewMember, setNewMember] = useInput('');
   const { data: userData } = useSWR<IUser>('/api/users', fetcher);
-  const { mutate: mutateMember } = useSWR<IChannel[]>(
+  const { mutate: revalidateMember } = useSWR<IChannel[]>(
     userData ? `/api/workspaces/${workspace}/members` : null,
     fetcher,
   );
@@ -34,7 +34,7 @@ const InviteWorkspaceModal: FC<Props> = ({ show, onCloseModal, setShowInviteWork
           email: newMember,
         })
         .then((response) => {
-          mutateMember();
+          revalidateMember();
           setShowInviteWorkspaceModal(false);
           setNewMember('');
         })
@@ -45,8 +45,6 @@ const InviteWorkspaceModal: FC<Props> = ({ show, onCloseModal, setShowInviteWork
     },
     [workspace, newMember],
   );
-
-  if (!show) return null;
 
   return (
     <Modal show={show} onCloseModal={onCloseModal}>

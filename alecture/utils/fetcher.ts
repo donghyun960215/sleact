@@ -7,5 +7,8 @@ const fetcher = (url: string) =>
       withCredentials: true,
     })
     .then((response) => response.data);
+// .catch((error) => {
+//   console.log(error);
+// });
 
 export default fetcher;

@@ -46,7 +46,7 @@ const SigUp = () => {
             password,
           })
           .then((response) => {
-            console.log('성공 시', response); //성공시
+            // console.log('성공 시', response); //성공시
             setSignUpSuccess(true);
           })
           .catch((error) => {

@@ -31,6 +31,8 @@ import { toast } from 'react-toastify';
 import CreateChannelModal from '@components/CreateChannelModal';
 import InviteWorkspaceModal from '@components/InviteWorkspaceModal';
 import InviteChannelModal from '@components/InviteChannelModal';
+import DMList from '@components/DMList';
+import ChannelList from '@components/ChannelList';
 
 const Channel = loadable(() => import('@pages/Channel'));
 const DirectMessage = loadable(() => import('@pages/DirectMessage'));
@@ -55,14 +57,8 @@ const Workspace: VFC = () => {
   } = useSWR<IUser | false>('/api/users', fetcher, {
     dedupingInterval: 2000,
   });
-  const { data: channelData } = useSWR<IChannel[]>(
-    userData ? `/api/workspaces/${workspace}/channels` : null, //로그인상태일떄만 채널가져옴 채널 목록 가져오기임
-    fetcher,
-  );
-  const { data: memberData } = useSWR<IChannel[]>(
-    userData ? `/api/workspaces/${workspace}/members` : null, //로그인상태일떄만 멤버 목록 가져오기임
-    fetcher,
-  );
+  const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher);
+  // const { data: memberData } = useSWR<IUser[]>(userData ? `/api/workspaces/${workspace}/members` : null, fetcher);
 
   const onLogout = useCallback(() => {
     axios
@@ -185,15 +181,14 @@ const Workspace: VFC = () => {
                 <button onClick={onLogout}>로그아웃</button>
               </WorkspaceModal>
             </Menu>
-            {channelData?.map((v) => {
-              return <div>{v.name}</div>;
-            })}
+            <ChannelList></ChannelList>
+            <DMList></DMList>
           </MenuScroll>
         </Channels>
         <Chats>
           <Switch>
             <Route path="/workspace/:workspace/channel/:channel" component={Channel}></Route>
-            <Route path="/workspace/:workspace/dm/:dm" component={DirectMessage}></Route>
+            <Route path="/workspace/:workspace/dm/:id" component={DirectMessage}></Route>
           </Switch>
         </Chats>
       </WorkspaceWrapper>
@@ -219,9 +214,7 @@ const Workspace: VFC = () => {
         show={showInviteWorkspaceModal}
         onCloseModal={onCloseModal}
         setShowInviteWorkspaceModal={setShowInviteWorkspaceModal}
-      >
-        x
-      </InviteWorkspaceModal>
+      ></InviteWorkspaceModal>
       <InviteChannelModal
         show={showInviteChannelModal}
         onCloseModal={onCloseModal}
