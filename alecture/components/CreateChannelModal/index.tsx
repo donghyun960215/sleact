@@ -1,5 +1,5 @@
 import Modal from '@components/Modal';
-import useInput from '@hooks/useInupt';
+import useInput from '@hooks/useInput';
 import { Button, Input, Label } from '@pages/SignUp/styles';
 import { IChannel, IUser } from '@typings/db';
 import fetcher from '@utils/fetcher';
@@ -23,11 +23,11 @@ const CreateChannelModal: VFC<Props> = ({ show, onCloseModal, setShowCreateChann
     data: userData,
     error,
     mutate,
-  } = useSWR<IUser | false>('http://localhost:3095/api/users', fetcher, {
+  } = useSWR<IUser | false>('/api/users', fetcher, {
     dedupingInterval: 2000,
   });
   const { data: channelData, mutate: channelMutate } = useSWR<IChannel[]>(
-    userData ? `http://localhost:3095/api/workspaces/${workspace}/channels` : null, //로그인상태일떄만 채널가져옴 채널 목록 가져오기임
+    userData ? `/api/workspaces/${workspace}/channels` : null, //로그인상태일떄만 채널가져옴 채널 목록 가져오기임
     fetcher,
   );
 
@@ -36,7 +36,7 @@ const CreateChannelModal: VFC<Props> = ({ show, onCloseModal, setShowCreateChann
       e.preventDefault();
       axios
         .post(
-          `http://localhost:3095/api/workspaces/${workspace}/channels`,
+          `/api/workspaces/${workspace}/channels`,
           {
             name: newChannel,
           },

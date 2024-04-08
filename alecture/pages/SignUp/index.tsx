@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Form, Label, Input, Header, LinkContainer, Button, Error, Success } from './styles';
-import useInput from '@hooks/useInupt';
+import useInput from '@hooks/useInput';
 import axios from 'axios';
 import { Link, Redirect } from 'react-router-dom';
 import fetcher from '@utils/fetcher';
@@ -40,7 +40,7 @@ const SigUp = () => {
         setSignUpError('');
         setSignUpSuccess(false);
         axios
-          .post('http://localhost:3095/api/users', {
+          .post('/api/users', {
             email,
             nickname,
             password,
