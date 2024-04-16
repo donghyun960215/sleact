@@ -1,4 +1,4 @@
-import React, { VFC, useCallback, useRef, useState } from 'react';
+import React, { VFC, useCallback, useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
 import fetcher from '@utils/fetcher';
 import axios from 'axios';
@@ -33,6 +33,7 @@ import InviteWorkspaceModal from '@components/InviteWorkspaceModal';
 import InviteChannelModal from '@components/InviteChannelModal';
 import DMList from '@components/DMList';
 import ChannelList from '@components/ChannelList';
+import useSocket from '@hooks/useSocket';
 
 const Channel = loadable(() => import('@pages/Channel'));
 const DirectMessage = loadable(() => import('@pages/DirectMessage'));
@@ -48,8 +49,8 @@ const Workspace: VFC = () => {
   const [newUrl, onChangeNewUrl, setNewUrl] = useInput('');
   const refName = useRef<any>();
   const refUrl = useRef<any>();
-  const { workspace } = useParams<{ workspace: string }>();
 
+  const { workspace } = useParams<{ workspace: string }>();
   const {
     data: userData,
     error,
@@ -57,8 +58,23 @@ const Workspace: VFC = () => {
   } = useSWR<IUser | false>('/api/users', fetcher, {
     dedupingInterval: 2000,
   });
+
   const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher);
-  // const { data: memberData } = useSWR<IUser[]>(userData ? `/api/workspaces/${workspace}/members` : null, fetcher);
+  const { data: memberData } = useSWR<IUser[]>(userData ? `/api/workspaces/${workspace}/members` : null, fetcher);
+
+  const [socket, disconnect] = useSocket(workspace);
+  //로그인시 socket.io연결시켜주기
+  useEffect(() => {
+    if (channelData && userData && socket) {
+      socket.emit('login', { id: userData.id, channels: channelData.map((v) => v.id) });
+    }
+  }, [socket, channelData, userData]);
+  //socket.io 연결 끊기(workspace가 바뀔 경우)
+  useEffect(() => {
+    return () => {
+      disconnect();
+    };
+  }, [workspace, disconnect]);
 
   const onLogout = useCallback(() => {
     axios
@@ -75,7 +91,6 @@ const Workspace: VFC = () => {
   }, [mutate]);
 
   const onClickUserProfile = useCallback((e) => {
-    e.stopPropagtion();
     setShowUserMenu((prev) => !prev);
   }, []);
 

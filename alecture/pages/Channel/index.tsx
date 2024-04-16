@@ -16,10 +16,11 @@ const Channel = () => {
   const onSubmitForm = useCallback(
     (e) => {
       e.preventDefault();
-      console.log('submit');
+      console.log(chat);
+      console.log('Channel창');
       setChat('');
     },
-    [setChat],
+    [chat],
   );
 
   if (!userData || !myData) {

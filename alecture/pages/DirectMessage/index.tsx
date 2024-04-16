@@ -24,6 +24,7 @@ const DirectMessage = () => {
     (e) => {
       e.preventDefault();
       console.log(chat);
+      console.log('DirectMessage창.');
       if (chat?.trim()) {
         axios
           .post(`/api/workspace/${workspace}/dms/${id}/chats`, {
