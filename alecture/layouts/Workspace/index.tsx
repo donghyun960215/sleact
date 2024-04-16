@@ -1,4 +1,4 @@
-import React, { FC, VFC, useCallback, useEffect, useRef, useState } from 'react';
+import React, { VFC, useCallback, useRef, useState } from 'react';
 import useSWR from 'swr';
 import fetcher from '@utils/fetcher';
 import axios from 'axios';
@@ -72,10 +72,10 @@ const Workspace: VFC = () => {
       .then(() => {
         mutate(false, false);
       });
-  }, []);
+  }, [mutate]);
 
   const onClickUserProfile = useCallback((e) => {
-    e.stopPropagtion;
+    e.stopPropagtion();
     setShowUserMenu((prev) => !prev);
   }, []);
 
