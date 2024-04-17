@@ -15,9 +15,12 @@ const useSocket = (workspace?: string): [SocketIOClient.Socket | undefined, () =
   if (!workspace) {
     return [undefined, disconnect];
   }
-  sockets[workspace] = io.connect(`${backUrl}/ws-${workspace}`, {
-    transports: ['websocket'],
-  });
+
+  if (!sockets[workspace]) {
+    sockets[workspace] = io.connect(`${backUrl}/ws-${workspace}`, {
+      transports: ['websocket'],
+    });
+  }
 
   sockets[workspace].emit('holle', 'world'); //서버에 hello라는 event이름으로 world라는 data를 보낸다.
 

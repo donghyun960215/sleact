@@ -66,6 +66,7 @@ const Workspace: VFC = () => {
   //로그인시 socket.io연결시켜주기
   useEffect(() => {
     if (channelData && userData && socket) {
+      console.log(socket);
       socket.emit('login', { id: userData.id, channels: channelData.map((v) => v.id) });
     }
   }, [socket, channelData, userData]);
